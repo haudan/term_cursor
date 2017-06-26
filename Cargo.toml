@@ -1,0 +1,11 @@
+[package]
+name = "term_cursor"
+version = "0.1.0"
+authors = ["Daniel Hauser <daniel.hauser@liwest.at>"]
+
+[target."cfg(windows)".dependencies]
+winapi = "0.2.8"
+kernel32-sys = "0.2.2"
+
+[target."cfg(not(windows))".dependencies]
+termios = "0.2.2"
