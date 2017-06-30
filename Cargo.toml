@@ -1,7 +1,10 @@
 [package]
 name = "term_cursor"
+description = "A crate for handling terminal cursor movement in a platform independent way."
+license = "MIT"
 version = "0.1.0"
 authors = ["Daniel Hauser <daniel.hauser@liwest.at>"]
+tags = ["terminal", "cursor", "movement", "windows", "ansi"]
 
 [target."cfg(windows)".dependencies]
 winapi = "0.2.8"
