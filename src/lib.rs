@@ -4,7 +4,7 @@
 //!
 //! - `Windows`
 //! - `Linux`
-//! - `OS X`
+//! - `macOS`
 //! - `FreeBSD` (not tested)
 //! - `OpenBSD` (not tested)
 //!
