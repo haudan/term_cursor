@@ -26,6 +26,7 @@ use std::fmt::Error as FmtError;
 mod platform;
 
 /// The central error type.
+#[derive(Debug)]
 pub enum Error {
     IoError(std::io::Error),
     GetCursorPosParseError,
