@@ -21,7 +21,7 @@ impl Rect {
 
 fn main() {
     print!("{}", cursor::Clear);
-    window(Rect::new(5, 5, 50, 20), "Window title", "Window content");
+    window(Rect::new(1, 1, 50, 20), "Window title", "Window content");
 
     // Move the cursor down under the window, so the command prompt doesn't draw into the window.
     print!("{}", cursor::Goto(0, 26));

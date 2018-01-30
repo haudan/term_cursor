@@ -30,3 +30,11 @@ Also allows for clearing the screen!
         print!("{}", cursor::Goto(0, 12));
     }
 ```
+
+## Caveats
+
+The 2D coordinate system of term_cursor is in the range: `x in 0..WIDTH` and `y in 0..HEIGHT`, where `WIDTH` and `HEIGHT` are the dimensions of the terminal buffer in characters.
+
+Positioning the cursor and printing text out of bounds are **UNDEFINED BEHAVIOUR!** Your text might wrap, negative indicies might get turned into positive indicies, or you program might just crash. It is completely platform dependent.
+
+To cope with this, it is your duty to ensure that all drawing happens within bounds. A possible mitigation is to clamp all coordinates, which should eliminate most UB - this feature will come in a future release.
