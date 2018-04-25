@@ -1,11 +1,11 @@
 extern crate term_cursor as cursor;
 
-use std::io::Write;
-
 fn main() {
     print!("{}", cursor::Clear);
-    filled_rectangle((100, 10), (8, 8));
-    circle((80, 15), 10.0);
+
+    print!("{}Circle ->{}Rectangle ->", cursor::Goto(15, 6), cursor::Right(13));
+    filled_rectangle((50, 3), (8, 8));
+    circle((30, 6), 3.0);
 
     print!(
         "{}Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam.",
@@ -17,7 +17,7 @@ fn main() {
     );
     print!("{}Look at me!", cursor::Goto(10, 10));
     print!("{}I'm one line down!", cursor::Down(1));
-    print!(
+    println!(
         "{}And another one!{}I'm on the right!",
         cursor::Down(1),
         cursor::Right(10)
