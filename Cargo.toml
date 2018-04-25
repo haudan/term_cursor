@@ -1,9 +1,9 @@
 [package]
 name = "term_cursor"
 description = "A crate for handling terminal cursor movement in a platform independent way."
-version = "0.1.4"
+version = "0.2.0"
 authors = ["Daniel Hauser <daniel.hauser@liwest.at>"]
-tags = ["terminal", "cursor", "position", "movement", "windows", "ansi"]
+keywords = ["terminal", "console", "cursor", "caret"]
 license = "MIT"
 repository = "https://github.com/Lisoph/term_cursor"
 readme = "README.md"
