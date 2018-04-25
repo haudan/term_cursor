@@ -8,34 +8,32 @@ pub use self::platform_impl::*;
 mod platform_impl {
     use super::*;
 
-    extern crate winapi;
     extern crate kernel32;
+    extern crate winapi;
 
     use std::io::Write;
 
+    use self::winapi::minwindef::{DWORD, FALSE};
     use self::winapi::winbase;
-    use self::winapi::winnt::{HANDLE, WCHAR};
     use self::winapi::wincon::CONSOLE_SCREEN_BUFFER_INFOEX as ScreenBufferInfo;
-    use self::winapi::minwindef::{FALSE, DWORD};
     use self::winapi::wincon::COORD;
+    use self::winapi::winnt::{HANDLE, WCHAR};
 
     fn get_handle() -> Result<HANDLE, Error> {
-        let handle = unsafe { kernel32::GetStdHandle(winbase::STD_OUTPUT_HANDLE) };
-        if handle.is_null() {
-            Err(Error::PlatformSpecific)
-        } else {
-            Ok(handle)
+        match unsafe { kernel32::GetStdHandle(winbase::STD_OUTPUT_HANDLE) } {
+            hdl if hdl.is_null() => Err(Error::PlatformSpecific),
+            hdl => Ok(hdl),
         }
     }
 
     fn get_screen_buffer_info() -> Result<ScreenBufferInfo, Error> {
-        let mut info: ScreenBufferInfo = unsafe { std::mem::uninitialized() };
-        info.cbSize = std::mem::size_of_val(&info) as u32;
-        let res =
-            unsafe { kernel32::GetConsoleScreenBufferInfoEx(get_handle()?, &mut info as *mut _) };
-        match res {
-            FALSE => Err(Error::PlatformSpecific),
-            _ => Ok(info),
+        unsafe {
+            let mut info: ScreenBufferInfo = std::mem::zeroed();
+            info.cbSize = std::mem::size_of::<ScreenBufferInfo>() as u32;
+            match kernel32::GetConsoleScreenBufferInfoEx(get_handle()?, &mut info as *mut _) {
+                FALSE => Err(Error::PlatformSpecific),
+                _ => Ok(info),
+            }
         }
     }
 
@@ -45,8 +43,7 @@ mod platform_impl {
             X: x as i16,
             Y: y as i16,
         };
-        let res = unsafe { kernel32::SetConsoleCursorPosition(get_handle()?, coord) };
-        match res {
+        match unsafe { kernel32::SetConsoleCursorPosition(get_handle()?, coord) } {
             FALSE => Err(Error::PlatformSpecific),
             _ => Ok(()),
         }
@@ -77,7 +74,9 @@ mod platform_impl {
             )
         };
 
-        if res == FALSE { return Err(Error::PlatformSpecific); }
+        if res == FALSE {
+            return Err(Error::PlatformSpecific);
+        }
 
         let res = unsafe {
             kernel32::FillConsoleOutputAttribute(
@@ -103,14 +102,13 @@ mod platform_impl {
 
     extern crate termios;
 
+    use self::termios::{tcsetattr, Termios, CREAD, ECHO, ICANON, TCSAFLUSH};
     use std::io::{Read, Write};
-    use self::termios::{Termios, tcsetattr, TCSAFLUSH, ICANON, ECHO, CREAD};
 
     const FD_STDIN: ::std::os::unix::io::RawFd = 1;
 
     pub fn set_cursor_pos(x: i32, y: i32) -> Result<(), Error> {
-        std::io::stdout()
-            .write_fmt(format_args!("\x1B[{};{}H", y, x))?;
+        std::io::stdout().write_fmt(format_args!("\x1B[{};{}H", y, x))?;
         Ok(())
     }
 
@@ -129,8 +127,8 @@ mod platform_impl {
         stdout.write(b"\x1B[6n")?;
         stdout.flush()?;
 
-        // Read back result
         let mut buf = [0u8; 2];
+        
         // Expect `ESC[`
         std::io::stdin().read_exact(&mut buf)?;
         if buf[0] != 0x1B || buf[1] as char != '[' {
@@ -167,7 +165,11 @@ mod platform_impl {
         let (cols, c) = read_num()?;
 
         // Expect `R`
-        let res = if c == 'R' { Ok((cols, rows)) } else { Err(Error::PlatformSpecific) };
+        let res = if c == 'R' {
+            Ok((cols, rows))
+        } else {
+            Err(Error::PlatformSpecific)
+        };
 
         // Reset terminal
         tcsetattr(FD_STDIN, TCSAFLUSH, &orig)?;
