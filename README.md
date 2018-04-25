@@ -35,4 +35,6 @@ Also allows for clearing the screen!
 
 The 2D coordinate system of term_cursor is in the range: `x in 0..WIDTH` and `y in 0..HEIGHT`, where `WIDTH` and `HEIGHT` are the dimensions of the terminal buffer in characters.
 
-Positioning the cursor and printing text out of bounds is **UNDEFINED BEHAVIOUR!** Your text might wrap, negative indicies might get turned into positive indicies, or you program might just crash. It is completely platform dependent. It is your duty to ensure that all drawing happens within bounds.
+Positioning the cursor and printing text out of bounds is **UNDEFINED BEHAVIOUR!** Your text might wrap, negative indicies might get turned into positive indicies, or you program might just crash. It is completely platform dependent. 
+
+It is your duty to ensure that all drawing happens within bounds. To retrieve the dimensions of the terminal, I recommend the crate `term_size`.
