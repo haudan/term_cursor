@@ -19,36 +19,31 @@
 //! Both APIs **always** operate on the "default" terminal that is bound to the process.
 //! In other words, on Windows `GetStdHandle(STD_OUTPUT_HANDLE)` is used, and on *NIX, the ANSI terminal communcation is done through `stdout` / `stdin`.
 
-use std::fmt::{Display, Formatter};
-use std::fmt::Result as FmtResult;
-use std::fmt::Error as FmtError;
+use std::fmt::{Display, Formatter, Result as FmtResult, Error as FmtError};
+
+use std::io;
 
 mod platform;
 
 /// The central error type.
 #[derive(Debug)]
 pub enum Error {
-    IoError(std::io::Error),
-    GetCursorPosParseError,
-    #[cfg(target_os = "windows")]
-    WinApiError(WinApiError),
-
+    /// A generic io error.
+    Io(io::Error),
+    /// An opaque, platform-implementation specific error.
+    PlatformSpecific,
 }
 
-impl std::convert::From<std::io::Error> for Error {
-    fn from(err: std::io::Error) -> Self {
-        Error::IoError(err)
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Self {
+        Error::Io(err)
     }
 }
 
-/// A windows specific error. Indicates, which `WinAPI` call failed.
-#[cfg(target_os = "windows")]
-pub enum WinApiError {
-    GetStdHandleError,
-    GetConsoleScreenBufferInfoError,
-    FillConsoleOutputCharacterError,
-    FillConsoleOutputAttributeError,
-    SetConsoleCursorPositionError,
+impl From<Error> for FmtError {
+    fn from(_: Error) -> Self {
+        FmtError
+    }
 }
 
 /// A type that, when `Display`ed, makes the cursor go the specified coordinates.
@@ -60,7 +55,7 @@ pub struct Goto(pub i32, pub i32);
 impl Display for Goto {
     fn fmt(&self, _fmt: &mut Formatter) -> FmtResult {
         let Goto(x, y) = *self;
-        platform::set_cursor_pos(x, y).map_err(|_| FmtError)?;
+        platform::set_cursor_pos(x, y)?;
         Ok(())
     }
 }
@@ -75,10 +70,10 @@ pub struct Relative(pub i32, pub i32);
 
 impl Display for Relative {
     fn fmt(&self, _fmt: &mut Formatter) -> FmtResult {
-        let (cur_x, cur_y) = platform::get_cursor_pos().map_err(|_| FmtError)?;
+        let (cur_x, cur_y) = platform::get_cursor_pos()?;
         let Relative(x, y) = *self;
         let (x, y) = (x + cur_x, y + cur_y);
-        platform::set_cursor_pos(x, y).map_err(|_| FmtError)?;
+        platform::set_cursor_pos(x, y)?;
         Ok(())
     }
 }
@@ -139,7 +134,7 @@ pub struct Clear;
 
 impl Display for Clear {
     fn fmt(&self, _fmt: &mut Formatter) -> FmtResult {
-        platform::clear().map_err(|_| FmtError)?;
+        platform::clear()?;
         Ok(())
     }
 }

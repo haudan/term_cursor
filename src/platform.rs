@@ -7,7 +7,6 @@ pub use self::platform_impl::*;
 #[cfg(target_os = "windows")]
 mod platform_impl {
     use super::*;
-    use super::super::WinApiError;
 
     extern crate winapi;
     extern crate kernel32;
@@ -23,7 +22,7 @@ mod platform_impl {
     fn get_handle() -> Result<HANDLE, Error> {
         let handle = unsafe { kernel32::GetStdHandle(winbase::STD_OUTPUT_HANDLE) };
         if handle.is_null() {
-            Err(Error::WinApiError(WinApiError::GetStdHandleError))
+            Err(Error::PlatformSpecific)
         } else {
             Ok(handle)
         }
@@ -35,7 +34,7 @@ mod platform_impl {
         let res =
             unsafe { kernel32::GetConsoleScreenBufferInfoEx(get_handle()?, &mut info as *mut _) };
         match res {
-            FALSE => Err(Error::WinApiError(WinApiError::GetConsoleScreenBufferInfoError)),
+            FALSE => Err(Error::PlatformSpecific),
             _ => Ok(info),
         }
     }
@@ -48,7 +47,7 @@ mod platform_impl {
         };
         let res = unsafe { kernel32::SetConsoleCursorPosition(get_handle()?, coord) };
         match res {
-            FALSE => Err(Error::WinApiError(WinApiError::SetConsoleCursorPositionError)),
+            FALSE => Err(Error::PlatformSpecific),
             _ => Ok(()),
         }
     }
@@ -66,7 +65,6 @@ mod platform_impl {
         let info = get_screen_buffer_info()?;
         let size = info.dwSize.X as u32 * info.dwSize.Y as u32;
         let coord = COORD { X: 0, Y: 0 };
-
         let mut _written: DWORD = 0;
 
         let res = unsafe {
@@ -79,7 +77,7 @@ mod platform_impl {
             )
         };
 
-        if res == FALSE { return Err(Error::WinApiError(WinApiError::FillConsoleOutputCharacterError)); }
+        if res == FALSE { return Err(Error::PlatformSpecific); }
 
         let res = unsafe {
             kernel32::FillConsoleOutputAttribute(
@@ -92,7 +90,7 @@ mod platform_impl {
         };
 
         if res == FALSE {
-            Err(Error::WinApiError(WinApiError::FillConsoleOutputAttributeError))
+            Err(Error::PlatformSpecific)
         } else {
             Ok(())
         }
@@ -136,7 +134,7 @@ mod platform_impl {
         // Expect `ESC[`
         std::io::stdin().read_exact(&mut buf)?;
         if buf[0] != 0x1B || buf[1] as char != '[' {
-            return Err(Error::GetCursorPosParseError);
+            return Err(Error::PlatformSpecific);
         }
 
         // Read rows and cols through a ad-hoc integer parsing function
@@ -162,14 +160,14 @@ mod platform_impl {
         // Read rows and expect `;`
         let (rows, c) = read_num()?;
         if c != ';' {
-            return Err(Error::GetCursorPosParseError);
+            return Err(Error::PlatformSpecific);
         }
 
         // Read cols
         let (cols, c) = read_num()?;
 
         // Expect `R`
-        let res = if c == 'R' { Ok((cols, rows)) } else { Err(Error::GetCursorPosParseError) };
+        let res = if c == 'R' { Ok((cols, rows)) } else { Err(Error::PlatformSpecific) };
 
         // Reset terminal
         tcsetattr(FD_STDIN, TCSAFLUSH, &orig)?;
