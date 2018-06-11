@@ -1,7 +1,7 @@
 [package]
 name = "term_cursor"
 description = "A crate for handling terminal cursor movement in a platform independent way."
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Daniel Hauser <daniel.hauser@liwest.at>"]
 keywords = ["terminal", "console", "cursor", "caret"]
 license = "MIT"
@@ -9,8 +9,7 @@ repository = "https://github.com/Lisoph/term_cursor"
 readme = "README.md"
 
 [target."cfg(windows)".dependencies]
-winapi = "0.3.4"
-kernel32-sys = "0.2.2"
+winapi = { version = "0.3.5", features = ["minwindef", "winbase", "wincon", "processenv"] }
 
 [target."cfg(not(windows))".dependencies]
 termios = "0.3.0"

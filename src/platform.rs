@@ -6,21 +6,18 @@ pub use self::platform_impl::*;
 
 #[cfg(target_os = "windows")]
 mod platform_impl {
-    use super::*;
-
-    extern crate kernel32;
     extern crate winapi;
+    use super::*;
 
     use std::io::Write;
 
-    use self::winapi::minwindef::{DWORD, FALSE};
-    use self::winapi::winbase;
-    use self::winapi::wincon::CONSOLE_SCREEN_BUFFER_INFOEX as ScreenBufferInfo;
-    use self::winapi::wincon::COORD;
-    use self::winapi::winnt::{HANDLE, WCHAR};
+    use self::winapi::{shared::minwindef::{DWORD, FALSE},
+                       um::{processenv, winbase, wincon,
+                            wincon::{CONSOLE_SCREEN_BUFFER_INFOEX as ScreenBufferInfo, COORD},
+                            winnt::{HANDLE, WCHAR}}};
 
     fn get_handle() -> Result<HANDLE, Error> {
-        match unsafe { kernel32::GetStdHandle(winbase::STD_OUTPUT_HANDLE) } {
+        match unsafe { processenv::GetStdHandle(winbase::STD_OUTPUT_HANDLE) } {
             hdl if hdl.is_null() => Err(Error::PlatformSpecific),
             hdl => Ok(hdl),
         }
@@ -30,7 +27,7 @@ mod platform_impl {
         unsafe {
             let mut info: ScreenBufferInfo = std::mem::zeroed();
             info.cbSize = std::mem::size_of::<ScreenBufferInfo>() as u32;
-            match kernel32::GetConsoleScreenBufferInfoEx(get_handle()?, &mut info as *mut _) {
+            match wincon::GetConsoleScreenBufferInfoEx(get_handle()?, &mut info as *mut _) {
                 FALSE => Err(Error::PlatformSpecific),
                 _ => Ok(info),
             }
@@ -43,7 +40,7 @@ mod platform_impl {
             X: x as i16,
             Y: y as i16,
         };
-        match unsafe { kernel32::SetConsoleCursorPosition(get_handle()?, coord) } {
+        match unsafe { wincon::SetConsoleCursorPosition(get_handle()?, coord) } {
             FALSE => Err(Error::PlatformSpecific),
             _ => Ok(()),
         }
@@ -65,7 +62,7 @@ mod platform_impl {
         let mut _written: DWORD = 0;
 
         let res = unsafe {
-            kernel32::FillConsoleOutputCharacterW(
+            wincon::FillConsoleOutputCharacterW(
                 get_handle()?,
                 ' ' as WCHAR,
                 size,
@@ -79,7 +76,7 @@ mod platform_impl {
         }
 
         let res = unsafe {
-            kernel32::FillConsoleOutputAttribute(
+            wincon::FillConsoleOutputAttribute(
                 get_handle()?,
                 info.wAttributes,
                 size,
@@ -128,7 +125,7 @@ mod platform_impl {
         stdout.flush()?;
 
         let mut buf = [0u8; 2];
-        
+
         // Expect `ESC[`
         std::io::stdin().read_exact(&mut buf)?;
         if buf[0] != 0x1B || buf[1] as char != '[' {
