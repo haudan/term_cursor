@@ -1,4 +1,8 @@
-# term_cursor
+# Obsolete! term_cursor
+
+I recommend you use better and more actively maintained crates, such as [Crossterm](https://crates.io/crates/crossterm), [Termion](https://crates.io/crates/termion), or [Termwiz](https://crates.io/crates/termwiz). You should also consider a more high-level crate like [Ratatui](https://crates.io/crates/ratatui). See also [this comparison](https://ratatui.rs/concepts/backends/comparison/).
+
+-------
 
 A pure-rust crate for manipulating the position of the terminal cursor!
 Also allows for clearing the screen!
